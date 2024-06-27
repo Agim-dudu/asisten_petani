@@ -1,5 +1,6 @@
+import 'package:asisten_petani/models/database.dart';
+import 'package:calendar_appbar/calendar_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:calendar_appbar/calendar_appbar.dart'; // Import package calendar_appbar
 import 'package:asisten_petani/theme.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -11,7 +12,30 @@ class CategoryPage extends StatefulWidget {
 
 class _CategoryPageState extends State<CategoryPage> {
   bool switchValue = false;
-  void openDialog() {
+
+  bool isExpense = true;
+  int tipe = 2;
+  final AppDb database = AppDb();
+  TextEditingController categoryNameController = TextEditingController();
+
+  Future insert(String nama, int tipe) async {
+    DateTime now = DateTime.now();
+    final sqll = await database.into(database.categories).insertReturning(
+        CategoriesCompanion.insert(
+            nama: nama, tipe: tipe, createdAt: now, updatedAt: now));
+
+    print(sqll.toString());
+  }
+
+  Future<List<Category>> getAllCategory(int tipe) async {
+    return await database.getAllCategoryRepo(tipe);
+  }
+
+  Future update(int categoryId, String newName) async {
+    return await database.updateCategoryRepo(categoryId, newName);
+  }
+
+  void openDialog(Category? category) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -21,15 +45,16 @@ class _CategoryPageState extends State<CategoryPage> {
                 child: Column(
               children: [
                 Text(
-                  (switchValue) ? 'Tambah Pengeluaran' : "Tambah Pemasukan",
+                  (isExpense) ? 'Tambah Pengeluaran' : "Tambah Pemasukan",
                   style: TextStyle(
                       fontSize: 20,
-                      color: (switchValue) ? Colors.red : Colors.green),
+                      color: (isExpense) ? Colors.red : Colors.green),
                 ),
                 SizedBox(
                   height: 10,
                 ),
                 TextFormField(
+                  controller: categoryNameController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'nama',
@@ -39,7 +64,16 @@ class _CategoryPageState extends State<CategoryPage> {
                   height: 10,
                 ),
                 ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (category == null) {
+                        insert(categoryNameController.text, isExpense ? 2 : 1);
+                      } else {
+                        update(category!.id, categoryNameController.text);
+                      }
+                      Navigator.of(context, rootNavigator: true).pop('dialog');
+                      setState(() {});
+                      categoryNameController.clear();
+                    },
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60),
                       fixedSize: Size(200, 50),
@@ -64,20 +98,20 @@ class _CategoryPageState extends State<CategoryPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Switch(
-                  value: switchValue,
+                  value: isExpense,
                   onChanged: (bool value) {
                     setState(() {
-                      switchValue = value;
+                      isExpense = value;
+                      tipe = value ? 2 : 1;
                     });
                   },
-                  activeTrackColor: Colors
-                      .red, // Mengubah warna latar belakang tombol saat digeser ke merah
-                  inactiveTrackColor: Colors
-                      .green, // Mengubah warna latar belakang tombol saat tidak digeser ke hijau
+                  inactiveTrackColor: Colors.green[200],
+                  inactiveThumbColor: Colors.green,
+                  activeColor: Colors.red,
                 ),
                 IconButton(
                     onPressed: () {
-                      openDialog();
+                      openDialog(null);
                     },
                     icon: Icon(Icons.add))
               ],
@@ -89,110 +123,64 @@ class _CategoryPageState extends State<CategoryPage> {
 
     Widget shapeList() {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 0),
         child: Column(
           children: [
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-                    SizedBox(width: 10),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
-                  ],
-                ),
-                title: Text("Jual Padi"),
-                leading: switchValue
-                    ? Icon(
-                        Icons.upload,
-                        color: Colors.red,
-                      )
-                    : Icon(
-                        Icons.upload,
-                        color: Colors.green,
-                      ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-                    SizedBox(width: 10),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
-                  ],
-                ),
-                title: Text("Jual Beras"),
-                leading: switchValue
-                    ? Icon(
-                        Icons.upload,
-                        color: Colors.red,
-                      )
-                    : Icon(
-                        Icons.upload,
-                        color: Colors.green,
-                      ),
-              ),
-            ),
-            SizedBox(
-                height:
-                    5), // Berikan jarak antar transaksi // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-                    SizedBox(width: 10),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
-                  ],
-                ),
-                title: Text("Jual Pupuk"),
-                leading: switchValue
-                    ? Icon(
-                        Icons.upload,
-                        color: Colors.red,
-                      )
-                    : Icon(
-                        Icons.upload,
-                        color: Colors.green,
-                      ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-                    SizedBox(width: 10),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
-                  ],
-                ),
-                title: Text("Jual Benih"),
-                leading: switchValue
-                    ? Icon(
-                        Icons.upload,
-                        color: Colors.red,
-                      )
-                    : Icon(
-                        Icons.upload,
-                        color: Colors.green,
-                      ),
-              ),
-            ),
+            FutureBuilder<List<Category>>(
+                future: getAllCategory(tipe),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    if (snapshot.hasData) {
+                      if (snapshot.data!.length > 0) {
+                        return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                child: Card(
+                                  elevation: 10,
+                                  child: ListTile(
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(Icons.delete)),
+                                        IconButton(
+                                            onPressed: () {
+                                              openDialog(snapshot.data![index]);
+                                            },
+                                            icon: Icon(Icons.edit)),
+                                      ],
+                                    ),
+                                    title: Text(snapshot.data![index].nama),
+                                    leading: (isExpense)
+                                        ? Icon(Icons.upload, color: Colors.red)
+                                        : Icon(Icons.download,
+                                            color: Colors.green),
+                                  ),
+                                ),
+                              );
+                            });
+                      } else {
+                        return Center(
+                          child: Text("No Has Data"),
+                        );
+                      }
+                    } else {
+                      return Center(
+                        child: Text("No Has Data"),
+                      );
+                    }
+                  }
+                }),
+
             SizedBox(height: 5), // Berikan jarak antar transaksi
           ],
         ),

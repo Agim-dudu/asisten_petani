@@ -162,7 +162,7 @@ class _IndexState extends State<SelectImage> {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -193,7 +193,7 @@ class _IndexState extends State<SelectImage> {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

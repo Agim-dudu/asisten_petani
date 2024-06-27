@@ -159,7 +159,7 @@ class HarvestRecordsPage extends StatelessWidget {
                         ),
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(primaryColor),
+                              WidgetStateProperty.all<Color>(primaryColor),
                         ))
                   ],
                 ),

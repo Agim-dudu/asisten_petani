@@ -107,8 +107,7 @@ class _WelcomePageState extends State<WelcomePage> {
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    primary: primaryColor,
-                    onPrimary: buttonColor1,
+                    foregroundColor: buttonColor1, backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100),
                       side: BorderSide(color: Colors.grey, width: 2),
@@ -133,8 +132,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    primary: buttonColor1,
-                    onPrimary: Colors.white,
+                    foregroundColor: Colors.white, backgroundColor: buttonColor1,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100),
                       side: BorderSide(color: Colors.grey, width: 2),
