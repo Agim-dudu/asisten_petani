@@ -231,7 +231,7 @@ class _IndexState extends State<SelectImage> {
     if (_classifier != null) {
       final resultCategory = _classifier!.predict(imageInput);
 
-      final result = resultCategory.score >= 0.6
+      final result = resultCategory.score >= 0.8
           ? ResultStatus.found
           : ResultStatus.notFound;
       final plantLabel = resultCategory.label;

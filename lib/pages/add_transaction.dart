@@ -226,7 +226,6 @@ class _AddTransactionState extends State<AddTransaction> {
                             selectedCategory!.id,
                             DateTime.parse(dateController.text),
                             int.parse(amountController.text));
-                    setState(() {});
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(

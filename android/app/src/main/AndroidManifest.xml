@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="asisten_petani"
+        android:label="Sawah Sehat"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

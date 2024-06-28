@@ -73,8 +73,29 @@ class AppDb extends _$AppDb {
   Future deleteTransactionRepo(int id) async {
     return (delete(transactions)..where((t) => t.id.equals(id))).go();
   }
+
+  Future<List<TransactionWithCategory>> getTransactionsForYear2024() async {
+    final DateTime startOfYear = DateTime(2024, 1, 1);
+    final DateTime endOfYear = DateTime(2024, 12, 31);
+
+    final query = select(transactions).join([
+      innerJoin(categories, categories.id.equalsExp(transactions.category_id))
+    ])
+      ..where(transactions.transaction_date
+          .isBetweenValues(startOfYear, endOfYear));
+
+    final result = await query.get();
+
+    return result.map((row) {
+      return TransactionWithCategory(
+        row.readTable(transactions),
+        row.readTable(categories),
+      );
+    }).toList();
+  }
 }
 
+// New method to fetch transactions for year 2024
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
