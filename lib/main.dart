@@ -16,7 +16,9 @@ class MyApp extends StatelessWidget {
         '/': (context) => SplashPage(),
         '/welcome': (context) => WelcomePage(),
         '/home': (context) => MainPage(),
-        '/addTransaction': (context) => AddTransaction(),
+        '/addTransaction': (context) => AddTransaction(
+              transactionWithCategory: null,
+            ),
         '/selectImage': (context) => SelectImage(),
         // '/index': (context) => Index(),
         // '/instruction': (context) => Instruction(),

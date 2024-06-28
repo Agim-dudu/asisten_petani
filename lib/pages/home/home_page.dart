@@ -1,10 +1,48 @@
+import 'package:asisten_petani/models/database.dart';
+import 'package:asisten_petani/models/transaction_with_category.dart';
 import 'package:asisten_petani/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:asisten_petani/pages/add_transaction.dart';
 import 'package:calendar_appbar/calendar_appbar.dart'; // Import package calendar_appbar
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  final DateTime selectedDate;
+  const HomePage({Key? key, required this.selectedDate}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final AppDb database = AppDb();
+  late DateTime selectedDate;
+  int currentIndex = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    updateView(0, DateTime.now());
+    super.initState();
+  }
+
+  void updateView(int index, DateTime? date) {
+    setState(() {
+      if (date != null) {
+        selectedDate = DateTime.parse(DateFormat('yyyy-MM-dd').format(date));
+      }
+
+      currentIndex = index;
+      // _children = [
+      //   HomePage(
+      //     selectedDate: selectedDate,
+      //   ),
+      //   CategoryPage()
+      // ];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget barChart() {
@@ -172,131 +210,92 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000"),
-                subtitle: Text("Beli Pupuk"),
-                leading: Icon(
-                  Icons.upload,
-                  color: Colors.red,
-                ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000.000"),
-                subtitle: Text("Jual Beras"),
-                leading: Icon(
-                  Icons.download,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000.000"),
-                subtitle: Text("Jual Beras"),
-                leading: Icon(
-                  Icons.download,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000.000"),
-                subtitle: Text("Jual Beras"),
-                leading: Icon(
-                  Icons.download,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000.000"),
-                subtitle: Text("Jual Beras"),
-                leading: Icon(
-                  Icons.download,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-            SizedBox(height: 5), // Berikan jarak antar transaksi
-            Card(
-              elevation: 1,
-              color: Colors.white,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 10),
-                    Icon(Icons.edit),
-                  ],
-                ),
-                title: Text("Rp. 20.000.000"),
-                subtitle: Text("Jual Beras"),
-                leading: Icon(
-                  Icons.download,
-                  color: Colors.green,
-                ),
-              ),
-            ),
+            StreamBuilder<List<TransactionWithCategory>>(
+                stream: database.getTransactionByDateRepo(selectedDate),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    print(snapshot.data.toString());
+                    if (snapshot.hasData) {
+                      if (snapshot.data!.length > 0) {
+                        return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                elevation: 1,
+                                color: Colors.white,
+                                child: ListTile(
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.delete),
+                                          onPressed: () async {
+                                            await database
+                                                .deleteTransactionRepo(snapshot
+                                                    .data![index]
+                                                    .transaction
+                                                    .id);
+                                          },
+                                        ),
+                                        SizedBox(width: 10),
+                                        IconButton(
+                                          icon: Icon(Icons.edit),
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AddTransaction(
+                                                          transactionWithCategory:
+                                                              snapshot
+                                                                  .data![index],
+                                                        )));
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    title: Text(
+                                      "Rp. " +
+                                          snapshot
+                                              .data![index].transaction.jumlah
+                                              .toString(),
+                                    ),
+                                    subtitle: Text(
+                                        snapshot.data![index].category.nama),
+                                    leading: Container(
+                                      child: (snapshot
+                                                  .data![index].category.tipe ==
+                                              1)
+                                          ? Icon(
+                                              Icons.download,
+                                              color: Colors.greenAccent[400],
+                                            )
+                                          : Icon(
+                                              Icons.upload,
+                                              color: Colors.red[400],
+                                            ),
+                                    )
+                                    // Icon(
+                                    //   Icons.upload,
+                                    //   color: Colors.red,
+                                    // ),
+                                    ),
+                              );
+                            });
+                      } else {
+                        return Center(
+                            child: Text("Data transaksi masih kosong"));
+                      }
+                    } else {
+                      return Center(child: Text("Tidak ada data"));
+                    }
+                  }
+                  ;
+                }),
           ],
         ),
       );
@@ -348,7 +347,9 @@ class HomePage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => AddTransaction()),
+                                builder: (context) => AddTransaction(
+                                      transactionWithCategory: null,
+                                    )),
                           );
                         },
                         icon: Icon(
@@ -483,7 +484,13 @@ class HomePage extends StatelessWidget {
         backButton: false,
         accent: buttonColor1,
         locale: 'id', // Gunakan nilai buttonColor1 langsung
-        onDateChanged: (value) => print(value),
+        onDateChanged: (value) {
+          setState(() {
+            selectedDate = value;
+            updateView(0, selectedDate);
+            print("TANGAL : " + value.toString());
+          });
+        },
         firstDate: DateTime.now().subtract(Duration(days: 140)),
         lastDate: DateTime.now(),
       ),

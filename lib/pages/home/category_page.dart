@@ -36,54 +36,54 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   void openDialog(Category? category) {
+    if (category != null) {
+      categoryNameController.text = category.nama;
+    }
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              content: SingleChildScrollView(
-            child: Center(
+            content: SingleChildScrollView(
+              child: Center(
                 child: Column(
-              children: [
-                Text(
-                  (isExpense) ? 'Tambah Pengeluaran' : "Tambah Pemasukan",
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: (isExpense) ? Colors.red : Colors.green),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                TextFormField(
-                  controller: categoryNameController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'nama',
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                ElevatedButton(
-                    onPressed: () {
-                      if (category == null) {
-                        insert(categoryNameController.text, isExpense ? 2 : 1);
-                      } else {
-                        update(category!.id, categoryNameController.text);
-                      }
-                      Navigator.of(context, rootNavigator: true).pop('dialog');
-                      setState(() {});
-                      categoryNameController.clear();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 60),
-                      fixedSize: Size(200, 50),
+                  children: [
+                    Text(
+                      (isExpense) ? "Tambah Pengeluaran" : "Tambah Pemasukan",
+                      style: TextStyle(
+                          color: (isExpense) ? Colors.red : Colors.green,
+                          fontSize: 18),
                     ),
-                    child: Text('Simpan',
-                        style:
-                            TextStyle(color: backgroundColor1, fontSize: 16)))
-              ],
-            )),
-          ));
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFormField(
+                      controller: categoryNameController,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: isExpense ? "Pengeluaran" : "Pemasukan"),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          if (category == null) {
+                            insert(
+                                categoryNameController.text, isExpense ? 2 : 1);
+                          } else {
+                            update(category.id, categoryNameController.text);
+                          }
+                          Navigator.of(context, rootNavigator: true)
+                              .pop('dialog');
+                          setState(() {});
+                          categoryNameController.clear();
+                        },
+                        child: Text("Simpan"))
+                  ],
+                ),
+              ),
+            ),
+          );
         });
   }
 
@@ -150,7 +150,11 @@ class _CategoryPageState extends State<CategoryPage> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              database.deleteCategoryRepo(
+                                                  snapshot.data![index].id);
+                                              setState(() {});
+                                            },
                                             icon: Icon(Icons.delete)),
                                         IconButton(
                                             onPressed: () {

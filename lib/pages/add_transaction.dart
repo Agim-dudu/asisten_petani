@@ -1,19 +1,76 @@
+import 'package:asisten_petani/models/database.dart';
+import 'package:asisten_petani/models/transaction_with_category.dart';
 import 'package:flutter/material.dart';
 import 'package:asisten_petani/theme.dart';
 import 'package:intl/intl.dart';
 
 class AddTransaction extends StatefulWidget {
-  const AddTransaction({super.key});
+  final TransactionWithCategory? transactionWithCategory;
+  const AddTransaction({Key? key, required this.transactionWithCategory})
+      : super(key: key);
 
   @override
   State<AddTransaction> createState() => _AddTransactionState();
 }
 
 class _AddTransactionState extends State<AddTransaction> {
-  bool switchValue = false;
-  List<String> list = ['jual Padi', 'Beli Pupuk'];
-  late String selectedValue = list.first;
+  bool isExpense = true;
+  late int type;
+  final AppDb database = AppDb();
+  Category? selectedCategory;
   TextEditingController dateController = TextEditingController();
+  TextEditingController amountController = TextEditingController();
+
+// INSERT DATA
+  Future insert(int jumlah, DateTime date, int categoryId) async {
+    DateTime now = DateTime.now();
+    final row = await database.into(database.transactions).insertReturning(
+        TransactionsCompanion.insert(
+            category_id: categoryId,
+            jumlah: jumlah,
+            transaction_date: date,
+            createdAt: now,
+            updatedAt: now));
+
+    print("Masuk : " + row.toString());
+  }
+
+  Future<List<Category>> getAllCategory(int tipe) async {
+    return await database.getAllCategoryRepo(tipe);
+  }
+
+  Future update(
+    int transactionId,
+    int categoryId,
+    DateTime transactionDate,
+    int jumlah,
+  ) async {
+    final row = await database.updateTransactionRepo(
+        transactionId, categoryId, transactionDate, jumlah);
+    print("Update >>>> " + row.toString());
+    return row;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    if (widget.transactionWithCategory != null) {
+      updateTransactionView(widget.transactionWithCategory!);
+    } else {
+      type = 2;
+    }
+    super.initState();
+  }
+
+  void updateTransactionView(TransactionWithCategory transactionWithCategory) {
+    amountController.text =
+        transactionWithCategory.transaction.jumlah.toString();
+    dateController.text = DateFormat("yyyy-MM-dd")
+        .format(transactionWithCategory.transaction.transaction_date);
+    type = transactionWithCategory.category.tipe;
+    (type == 2) ? isExpense = true : isExpense = false;
+    selectedCategory = transactionWithCategory.category;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,21 +82,22 @@ class _AddTransactionState extends State<AddTransaction> {
             Row(
               children: [
                 Switch(
-                  value: switchValue,
+                  value: isExpense,
                   onChanged: (bool value) {
                     setState(() {
-                      switchValue = value;
+                      isExpense = value;
+                      type = (isExpense) ? 2 : 1;
+                      selectedCategory = null;
                     });
                   },
-                  activeTrackColor: Colors
-                      .red, // Mengubah warna latar belakang tombol saat digeser ke merah
-                  inactiveTrackColor: Colors
-                      .green, // Mengubah warna latar belakang tombol saat tidak digeser ke hijau
+                  inactiveTrackColor: Colors.green[200],
+                  inactiveThumbColor: Colors.green,
+                  activeColor: Colors.red,
                 ),
                 SizedBox(
                   width: 10,
                 ),
-                Text(switchValue ? 'Pengeluaran' : 'Pemasukan',
+                Text(isExpense ? 'Pengeluaran' : 'Pemasukan',
                     style: TextStyle(color: backgroundColor1, fontSize: 16)),
               ],
             ),
@@ -56,6 +114,7 @@ class _AddTransactionState extends State<AddTransaction> {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: TextFormField(
+                controller: amountController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Jumlah',
@@ -70,34 +129,59 @@ class _AddTransactionState extends State<AddTransaction> {
             padding: const EdgeInsets.only(left: 16),
             child: Text('Kategori'),
           ),
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: DropdownButton<String>(
-                value: selectedValue,
-                isExpanded: true,
-                icon: Icon(Icons.arrow_downward),
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedValue = value!;
-                  });
-                },
-                items: list.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
+          FutureBuilder<List<Category>>(
+              future: getAllCategory(type),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
                   );
-                }).toList(),
-              ),
-            ),
-          ),
+                } else {
+                  if (snapshot.hasData) {
+                    if (snapshot.data!.length > 0) {
+                      // selectedCategory = snapshot.data!.first;
+                      print("Apanih : " + snapshot.data!.first.toString());
+                      return SafeArea(
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: DropdownButton<Category>(
+                              value: (selectedCategory == null)
+                                  ? snapshot.data!.first
+                                  : selectedCategory,
+                              isExpanded: true,
+                              icon: Icon(Icons.arrow_downward),
+                              onChanged: (Category? value) {
+                                setState(() {
+                                  selectedCategory = value;
+                                });
+                              },
+                              items: snapshot.data!.map((Category value) {
+                                return DropdownMenuItem<Category>(
+                                  value: value,
+                                  child: Text(value.nama),
+                                );
+                              }).toList(),
+                            )),
+                      );
+                    } else {
+                      return Center(
+                        child: Text("Data Kosong"),
+                      );
+                    }
+                  } else {
+                    return Center(
+                      child: Text("Tidak ada data"),
+                    );
+                  }
+                }
+              }),
           SizedBox(
             height: 10,
           ),
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
+              child: TextFormField(
                 readOnly: true,
                 controller: dateController,
                 decoration: InputDecoration(
@@ -115,7 +199,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   );
                   if (pickedDate != null) {
                     String formattedDate =
-                        DateFormat('yyyy-mm-dd').format(pickedDate);
+                        DateFormat('yyyy-MM-dd').format(pickedDate);
                     setState(() {
                       dateController.text = formattedDate;
                     });
@@ -131,7 +215,20 @@ class _AddTransactionState extends State<AddTransaction> {
           Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    (widget.transactionWithCategory == null)
+                        ? insert(
+                            int.parse(amountController.text),
+                            DateTime.parse(dateController.text),
+                            selectedCategory!.id)
+                        : await update(
+                            widget.transactionWithCategory!.transaction.id,
+                            selectedCategory!.id,
+                            DateTime.parse(dateController.text),
+                            int.parse(amountController.text));
+                    setState(() {});
+                    Navigator.pop(context, true);
+                  },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 60),
                     fixedSize: Size(200, 50),

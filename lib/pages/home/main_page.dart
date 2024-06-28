@@ -1,17 +1,50 @@
+import 'package:asisten_petani/models/database.dart';
 import 'package:asisten_petani/pages/home/harvest_records_page.dart';
 import 'package:asisten_petani/pages/home/category_page.dart';
 import 'package:asisten_petani/pages/home/home_page.dart';
 import 'package:asisten_petani/pages/home/about_page.dart';
 import 'package:flutter/material.dart';
 import 'package:asisten_petani/theme.dart';
+import 'package:intl/intl.dart';
 
 class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
+
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
+  late DateTime selectedDate;
+  late List<Widget> _children;
+
+  final database = AppDb();
+
+  TextEditingController categoryNameController = TextEditingController();
+
+  @override
+  void initState() {
+    updateView(0, DateTime.now());
+
+    super.initState();
+  }
+
+  void updateView(int index, DateTime? date) {
+    setState(() {
+      if (date != null) {
+        selectedDate = DateTime.parse(DateFormat('yyyy-MM-dd').format(date));
+      }
+
+      currentIndex = index;
+      _children = [
+        HomePage(
+          selectedDate: selectedDate,
+        ),
+        CategoryPage()
+      ];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +125,9 @@ class _MainPageState extends State<MainPage> {
     Widget body() {
       switch (currentIndex) {
         case 0:
-          return HomePage();
+          return HomePage(
+            selectedDate: selectedDate,
+          );
         case 1:
           return CategoryPage();
         case 2:
@@ -100,7 +135,7 @@ class _MainPageState extends State<MainPage> {
         case 3:
           return AboutPage();
         default:
-          return HomePage();
+          return HomePage(selectedDate: selectedDate);
       }
     }
 
